@@ -106,19 +106,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float eyer = 2.0;
     float eyea = -((iMouse.x + 80.5) / iResolution.x) * 3.1415926 * 2.0;
     float eyef = ((iMouse.y / iResolution.y)-0.24) * 3.1415926 * 2.0;
-    
-	vec3 cam = vec3(
-        eyer * cos(eyea) * sin(eyef),
-        eyer * cos(eyef),
-        eyer * sin(eyea) * sin(eyef));
+    vec3 cam = vec3(
+    eyer * cos(eyea) * sin(eyef),
+    eyer * cos(eyef),
+    eyer * sin(eyea) * sin(eyef));
     
     ROT(cam.xz, (0.25) * (iTime + 15.0));
-    
-	vec3 front = normalize(- cam);
-	vec3 left = normalize(cross(normalize(vec3(0.25,1,-0.01)), front));
-	vec3 up = normalize(cross(front, left));
-	vec3 v = normalize(front*1.75 + left*pp.x + up*pp.y);
-    
+    vec3 front = normalize(- cam);
+    vec3 left = normalize(cross(normalize(vec3(0.25,1,-0.01)), front));
+    vec3 up = normalize(cross(front, left));
+    vec3 v = normalize(front*1.75 + left*pp.x + up*pp.y);
     vec3 p = cam;
     
     float dt = 0.03;
@@ -129,8 +126,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     for(int i = 0; i < 100; i ++)
     {
         p += v * dt;
-        
-		if(mapcor(p * 500., cor))
+        if(mapcor(p * 500., cor))
             break;
     }
     vec4 color = vec4(cor,cor,cor,1.0);
