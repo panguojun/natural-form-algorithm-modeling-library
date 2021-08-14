@@ -1,3 +1,10 @@
+/*
+	raytrace->celestialbody
+*/
+// -----------------------------------------------
+// black hole
+// -----------------------------------------------
+
 #define ROT(p, a) p=cos(a)*p+sin(a)*vec2(p.y, -p.x)
 
 const float pi = 3.1415927;
