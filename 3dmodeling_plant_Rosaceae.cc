@@ -172,3 +172,21 @@ void rose(vec o, vec v0, real sz, VECLIST e, int depth)
 	triang(e[0], e[1], e[2]);
 }
 
+// --------------------------------------------------------
+// 最简代码设计测试
+// --------------------------------------------------------
+#define loopi(len)	int __len = len; for(int i=0; i<__len; i++)
+#define __ai		(i / __len)
+#define PI2		(PI * 2.0f)
+
+void flower()
+{
+	EDGE e;
+	loopi{
+		real ang = __ai * PI2;
+		real r = 1.0f;
+		vec2 p = vec2(cos(ang), sin(ang)) * r;
+		e = e + p;
+	}
+	branch(e);
+}
