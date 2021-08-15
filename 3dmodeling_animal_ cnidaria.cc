@@ -178,9 +178,7 @@ namespace Atolla
     vec s_robbinlstv[ROBBIN_NUM][180];
     real s_robbinstep[ROBBIN_NUM] = { 0 };
     
-    
-    // ----------------------------------------------------------------------------
-    
+    // ----------------------------------------------------------------
     void jellyfishMesh(int data, int type)
     {
         vec uz = vec::UZ;
