@@ -27,7 +27,7 @@ namespace flowers
 	// -------------------------------------
 	// POLY APIs
 	// -------------------------------------
-	void comv(bool b)
+	inline void comv(bool b)
 	{
 		gcommonvertex = b;
 	}
@@ -58,12 +58,12 @@ namespace flowers
 			estack.push_back(estack.back());
 		}
 	}
-	void pop(int n = 1)
+	inline void pop(int n = 1)
 	{
 		for (int i = 0; i < n; i++)
 			estack.pop_back();
 	}
-	void cls(edge& e)
+	inline void cls(edge& e)
 	{
 		closeedge(e.vlist);
 	}
@@ -78,7 +78,7 @@ namespace flowers
 		else
 			coordstack.push_back(coordstack.back());
 	}
-	void popc(int n = 1)
+	inline void popc(int n = 1)
 	{
 		for (int i = 0; i < n; i++)
 			coordstack.pop_back();
@@ -97,11 +97,11 @@ namespace flowers
 		}
 		coordstack.back().o += dv;
 	}
-	void face()
+	inline void face()
 	{
 		face(estack[estack.size() - 2], estack.back());
 	}
-	void scl(real s)
+	inline void scl(real s)
 	{	
 		scaleedge(estack.back(), s, coordstack.back().o);
 		coordstack.back().scl *= s;
