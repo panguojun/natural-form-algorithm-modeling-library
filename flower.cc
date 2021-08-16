@@ -1,10 +1,10 @@
-/***************************************
-     Algorithm to generate nature forms
+/**************************************************
+	Algorithm to generate nature forms
 	  算法生成自然形态的艺术
 	     Minimal code
 	       最简化代码
 
-***************************************/
+**************************************************/
 #define edge		PMHG::EDGE
 #define loopi(len)	for(int __len = len, i=0; i < __len; i++)
 #define __ai		(i / real(__len - 1))
@@ -14,7 +14,8 @@
 #define trunk()		pushc();push();
 #define endtk()		popc();pop();
 
-namespace flowers {
+namespace flowers 
+{
 	inline int rgb(const vec3& v)
 	{
 		return _RGB(int(v.x * 255), int(v.y * 255), int(v.z * 255));
