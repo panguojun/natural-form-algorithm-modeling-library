@@ -1,6 +1,6 @@
 /***************************************
-     Algorithm to generate natural form
-		 算法生成自然形态的艺术
+     Algorithm to generate nature forms
+	   算法生成自然形态的艺术
 
 ***************************************/
 #define edge		PMHG::EDGE
