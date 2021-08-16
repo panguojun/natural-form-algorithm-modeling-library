@@ -205,7 +205,8 @@ namespace flower {
 
 		dump(e);
 		push(e);
-		pipe(0);
+		branch(0);
+		//pipe(0);
 	}
 }
 void test()
