@@ -207,8 +207,7 @@ namespace flowers
 	// -------------------------------------
 	void branch(int d = 0)
 	{
-		pushc();
-		push();
+		trunk();
 		ext(5.);
 		face();
 			pushc();
@@ -244,8 +243,7 @@ namespace flowers
 			pop(5);
 			popc();
 
-		pop();
-		popc();
+		endtk();
 	}
 
 	void pipe(int d = 0)
