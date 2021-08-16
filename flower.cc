@@ -318,7 +318,7 @@ namespace flowers
 				trunke(e);
 				dump(e);
 				yaw(45 * i);
-				pipe_lotus_flower2(e);
+				pipe_lotus_flower2();
 
 				endtk();
 			}
