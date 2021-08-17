@@ -1,20 +1,21 @@
 /**************************************************
-	Algorithm to generate nature forms
-	  算法生成自然形态的艺术
-	     Minimal code
-	       最简化代码
-
+		Algorithm to generate nature forms
+			  算法生成自然形态的艺术
+				 Minimal code
+				   最简化代码
 **************************************************/
-#define edge		PMHG::EDGE
-#define loopi(len)	for(int __len = len, i=0; i < __len; i++)
-#define __ai		(i / real(__len - 1))
-#define PI2			(PI * 2.0f)
+#define PI2				(PI * 2.0f)
+#define edge			edge_t
+#define loopi(len)		for(int __len = len, i=0; i < __len; i++)
+#define __ai			(i / real(__len - 1))
+#define loopj(len)		for(int __lenj = len, j=0; j < __lenj; j++)
+#define __aj			(j / real(__lenj - 1))
 
-#define trunke()	pushc();push(e);
-#define trunk()		pushc();push();
-#define endtk()		popc();pop();
+#define begintke()		pushc();push(e);
+#define begintk()		pushc();push();
+#define endtk()			popc();pop();
 
-namespace flowers 
+namespace flowers
 {
 	inline int rgb(const vec3& v)
 	{
@@ -24,13 +25,17 @@ namespace flowers
 	{
 		return _RGB(r, g, b);
 	}
+
 	// -------------------------------------
 	// POLY APIs
 	// -------------------------------------
+	// settings
 	inline void comv(bool b)
 	{
 		gcommonvertex = b;
 	}
+
+	// stack
 	void push(edge& e)
 	{
 		if (e.vlist.size() > 0)
@@ -60,6 +65,8 @@ namespace flowers
 	}
 	inline void pop(int n = 1)
 	{
+		if (n < 0)
+			n = estack.size() - 1;
 		for (int i = 0; i < n; i++)
 			estack.pop_back();
 	}
@@ -80,9 +87,38 @@ namespace flowers
 	}
 	inline void popc(int n = 1)
 	{
+		if (n < 0)
+			n = coordstack.size() + n + 1;
 		for (int i = 0; i < n; i++)
 			coordstack.pop_back();
 	}
+
+	// draw
+	inline void face()
+	{
+		face(estack[estack.size() - 2], estack.back());
+	}
+	
+	// coord
+	inline coord_t& coord()
+	{
+		return coordstack.back();
+	}
+	inline int coordcur()
+	{
+		return coordstack.size() - 1;
+	}
+	void rotcoord(real degree, crvec ax)
+	{
+		float ang = degree * PI / 180.0f;
+		coord_t& cb = coordstack.back();
+
+		cb.ux.rot(ang, ax);
+		cb.uz.rot(ang, ax);
+		cb.uy = cb.ux.cross(cb.uz).normcopy();
+	}
+
+	// move
 	void ext(real d)
 	{
 		VECLIST& e1 = estack.back();
@@ -97,23 +133,20 @@ namespace flowers
 		}
 		coordstack.back().o += dv;
 	}
-	inline void face()
-	{
-		face(estack[estack.size() - 2], estack.back());
-	}
+
+	// scaling
 	inline void scl(real s)
-	{	
+	{
 		scaleedge(estack.back(), s, coordstack.back().o);
 		coordstack.back().scl *= s;
 	}
-	inline coord_t& coord()
-	{
-		return coordstack.back();
-	}
+
+	// rotation
 	void rot(real degree, crvec ax)
 	{
 		float ang = degree * PI / 180.0f;
 		coord_t& cb = coordstack.back();
+		
 		rotedge(estack.back(), ang, cb.o, ax);
 
 		cb.ux.rot(ang, ax);
@@ -157,6 +190,8 @@ namespace flowers
 		cb.ux.rot(ang, uz);
 		cb.uz = cb.uy.cross(cb.ux).normcopy();
 	}
+
+	// smooth
 	void smooth()
 	{
 		VECLIST& e = estack.back();
@@ -174,6 +209,9 @@ namespace flowers
 		e = ee;
 	}
 
+	// -------------------------------------
+	// Debug
+	// -------------------------------------
 	void coorddummy0(real x = 0, real y = 0, real z = 0)
 	{
 		color = 0xFF0000FF;
@@ -197,7 +235,7 @@ namespace flowers
 	}
 	void dump(edge& e)
 	{
-		PRINT("----DUMP----")
+		PRINT("----DUMP----");
 		for (auto& it : e.vlist)
 			PRINTVEC3(it.p);
 	}
@@ -205,23 +243,34 @@ namespace flowers
 	// -------------------------------------
 	// TOPE 3D
 	// -------------------------------------
+	void trunk(int d = 0)
+	{
+		begintk();
+			rot(blend(-10, 10, d / 13.), coord().ux);
+			scl(blend(1.2, 0.25, d / 13., 2));
+			ext(1.);
+			face();
+
+			if (d < 13)
+				trunk(d + 1);
+		endtk();
+	}
 	void branch(int d = 0)
 	{
-		trunk();
-		ext(5.);
-		face();
+		begintk();
+			ext(5.);
+			face();
 			pushc();
 			real ang = 20.;
-			loopi(5){
+			loopi(5) {
 				push();
-					ang = ang * 0.7 - 10.;
-					pit(ang);
-					scl(0.95);
-					ext(1.);
-					face();
+				ang = ang * 0.7 - 10.;
+				pit(ang);
+				scl(0.95);
+				ext(1.);
+				face();
 			}
-
-			if(d < 3.) {
+			if (d < 3.) {
 				branch(d + 1.);
 			}
 			pop(5);
@@ -229,15 +278,15 @@ namespace flowers
 
 			pushc();
 			ang = -20.;
-			loopi(5){
+			loopi(5) {
 				push();
-					ang = ang * 0.8 + 10.;
-					pit(ang);
-					ext(1.);
-					scl(0.95);
-					face();
+				ang = ang * 0.8 + 10.;
+				pit(ang);
+				ext(1.);
+				scl(0.95);
+				face();
 			}
-			if(d < 4.) {
+			if (d < 4.) {
 				branch(d + 1.);
 			}
 			pop(5);
@@ -246,82 +295,76 @@ namespace flowers
 		endtk();
 	}
 
-	void pipe(int d = 0)
-	{
-		trunk();
-		//coorddummy();
-		rot(blend(-10, 10, d / 13.), coord().ux);
-		scl(blend(1.2, 0.25, d / 13., 2));
-		ext(1.);
-		face();
-
-		if (d < 13)
-			pipe(d + 1);
-		endtk();
-	}
-	
 	// -------------------------------------
 	// 造型代码
 	// -------------------------------------
-	void pipe_lotus_flower1(int d = 0)
+	void pipe_lotus_flower1(int len, int d)
 	{
-		trunk();
-		rot(blend(-10, 10, d / 13.), coord().ux);
-		rot(blend(-10, 10, d / 13.), coord().uy);
+		begintk();
+		rot(blend(-10, 10, d / real(len)), coord().ux);
+		rot(blend(-10, 10, d / real(len)), coord().uy);
 		scl(0.95);
 		ext(1.);
 		face();
 
-		if (d < 13)
-			pipe_lotus_flower1(d + 1);
+		if (d < len)
+			pipe_lotus_flower1(len, d + 1);
 		pop();
 	}
-	void pipe_lotus_flower2(int d = 0)
+	void pipe_lotus_flower2(int len, real sz, int d)
 	{
-		trunk();
+		begintk();
 		rot(blend(-10, 10, d / 13.), coord().ux);
-		scl(blend(1.2, 0.25, d / 13., 2));
+		scl(blend(1.5 * sz, 0.25, d / 13., 2));
 		ext(1.);
 		face();
 
-		if (d < 13)
-			pipe_lotus_flower2(d + 1);
+		if (d < len)
+			pipe_lotus_flower2(len, sz, d + 1);
 		endtk();
 	}
 	void lotus_flower()
 	{
 		comv(true);
 
+		pushc();
+		int cdc = coordcur();
+		loopj(4)
 		{
-			edge e;
-			loopi(8) {
-				real ang = __ai * PI2;
-				real r = 1.0f;
-				vec p = vec(cos(ang), 0, sin(ang)) * r;
-				e = e | p;
+			rotcoord(90, vec3::UY);
+			coorddummy();
+			color = rgb(50, 150, 0);
+			{
+				edge e;
+				loopi(8) {
+					real ang = __ai * PI2;
+					real r = 1.0f;
+					vec p = vec(cos(ang), 0, sin(ang)) * r;
+					e = e | p;
+				}
+				push(e);
+				pipe_lotus_flower1(15 + 5 * j, 0);
+				pop();
 			}
-			trunke(e);
-			pipe_lotus_flower1();
-			pop();
-		}
-		{
-			edge e;
-			loopi(8) {
-				real ang = __ai * PI;
-				real r = 1.0f;
-				vec p = vec(cos(ang), 0, sin(ang)) * r;
-				e = e | p;
-			}
-			color = rgb(240, 150, 250);
+			{
+				edge e;
+				loopi(8) {
+					real ang = __ai * PI;
+					real r = 1.0f;
+					vec p = vec(cos(ang), 0, sin(ang)) * r;
+					e = e | p;
+				}
 
-			loopi(8) {
-				trunke(e);
-				dump(e);
-				yaw(45 * i);
-				pipe_lotus_flower2();
+				color = rgb(240, 150, 250);
+				loopi(8) {
+					begintke(e);
+					yaw(45 * i);
+					pipe_lotus_flower2(10 + j * 4, blend(0.8, 1.0, __aj), 0);
 
-				endtk();
+					endtk();
+				}
 			}
+			popc(-cdc - 2);
 		}
 	}
 }
