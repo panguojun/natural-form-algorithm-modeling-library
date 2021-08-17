@@ -4,7 +4,7 @@
 				  Minimal code
 				   最简化代码
 ********************************************************************************/
-#define PI2				(PI * 2.0f)
+#define PI2			(PI * 2.0f)
 #define edge			edge_t
 #define loopi(len)		for(int __len = len, i=0; i < __len; i++)
 #define __ai			(i / real(__len - 1))
