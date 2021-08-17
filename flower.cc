@@ -1,22 +1,29 @@
-/********************************************************************************
-			 Algorithm to generate nature forms
-			  	算法生成自然形态的艺术
-				  Minimal code
-				   最简化代码
-********************************************************************************/
-#define PI2			(PI * 2.0f)
+/**************************************************
+	Algorithm to generate nature forms
+		算法生成自然形态的艺术
+		   Minimal code
+		    最简化代码
+**************************************************/
+#define PI2				(PI * 2.0f)
 #define edge			edge_t
 #define loopi(len)		for(int __len = len, i=0; i < __len; i++)
 #define __ai			(i / real(__len - 1))
 #define loopj(len)		for(int __lenj = len, j=0; j < __lenj; j++)
 #define __aj			(j / real(__lenj - 1))
 
-#define begintke()		pushc();push(e);
-#define begintk()		pushc();push();
-#define endtk()			popc();pop();
+#define begintke(e)		pushc();push(e);
+#define begintk			pushc();push();
+#define endtk			popc();pop();
 
-namespace flowers
+namespace nforms
 {
+	// -------------------------------------
+	// settings
+	// -------------------------------------
+	inline void comv(bool b)
+	{
+		gcommonvertex = b;
+	}
 	inline int rgb(const vec3& v)
 	{
 		return _RGB(int(v.x * 255), int(v.y * 255), int(v.z * 255));
@@ -29,12 +36,6 @@ namespace flowers
 	// -------------------------------------
 	// POLY APIs
 	// -------------------------------------
-	// settings
-	inline void comv(bool b)
-	{
-		gcommonvertex = b;
-	}
-
 	// stack
 	void push(edge& e)
 	{
@@ -118,7 +119,7 @@ namespace flowers
 		cb.uy = cb.ux.cross(cb.uz).normcopy();
 	}
 
-	// move
+	// ext
 	void ext(real d)
 	{
 		VECLIST& e1 = estack.back();
@@ -133,7 +134,15 @@ namespace flowers
 		}
 		coordstack.back().o += dv;
 	}
-
+	void mov(crvec v)
+	{
+		VECLIST& e = estack.back();
+		for (int i = 0; i < e.size(); i++)
+		{
+			e[i] = e[i] + v;
+		}
+		coordstack.back().o += v;
+	}
 	// scaling
 	inline void scl(real s)
 	{
@@ -245,7 +254,7 @@ namespace flowers
 	// -------------------------------------
 	void trunk(int d = 0)
 	{
-		begintk();
+		begintk;
 			rot(blend(-10, 10, d / 13.), coord().ux);
 			scl(blend(1.2, 0.25, d / 13., 2));
 			ext(1.);
@@ -253,11 +262,21 @@ namespace flowers
 
 			if (d < 13)
 				trunk(d + 1);
-		endtk();
+		endtk;
+	}
+	#define trunk_cb(d) [](int d)->void
+	void trunk(int d, int maxd, std::function<void(int)> fun)
+	{
+		begintk;
+		fun(d);
+
+		if (d < maxd)
+			trunk(d + 1, maxd, fun);
+		endtk;
 	}
 	void branch(int d = 0)
 	{
-		begintk();
+		begintk;
 			ext(5.);
 			face();
 			pushc();
@@ -292,15 +311,15 @@ namespace flowers
 			pop(5);
 			popc();
 
-		endtk();
+		endtk;
 	}
 
 	// -------------------------------------
-	// 造型代码
+	// lotus
 	// -------------------------------------
-	void pipe_lotus_flower1(int len, int d)
+	void trunk_lotus_flower1(int len, int d)
 	{
-		begintk();
+		begintk;
 		rot(blend(-10, 10, d / real(len)), coord().ux);
 		rot(blend(-10, 10, d / real(len)), coord().uy);
 		scl(0.95);
@@ -308,20 +327,20 @@ namespace flowers
 		face();
 
 		if (d < len)
-			pipe_lotus_flower1(len, d + 1);
+			trunk_lotus_flower1(len, d + 1);
 		pop();
 	}
-	void pipe_lotus_flower2(int len, real sz, int d)
+	void trunk_lotus_flower2(int len, real sz, int d)
 	{
-		begintk();
+		begintk;
 		rot(blend(-10, 10, d / 13.), coord().ux);
 		scl(blend(1.5 * sz, 0.25, d / 13., 2));
 		ext(1.);
 		face();
 
 		if (d < len)
-			pipe_lotus_flower2(len, sz, d + 1);
-		endtk();
+			trunk_lotus_flower2(len, sz, d + 1);
+		endtk;
 	}
 	void lotus_flower()
 	{
@@ -343,7 +362,7 @@ namespace flowers
 					e = e | p;
 				}
 				push(e);
-				pipe_lotus_flower1(15 + 5 * j, 0);
+				trunk_lotus_flower1(15 + 5 * j, 0);
 				pop();
 			}
 			{
@@ -359,16 +378,49 @@ namespace flowers
 				loopi(8) {
 					begintke(e);
 					yaw(45 * i);
-					pipe_lotus_flower2(10 + j * 4, blend(0.8, 1.0, __aj), 0);
+					trunk_lotus_flower2(10 + j * 4, blend(0.8, 1.0, __aj), 0);
 
-					endtk();
+					endtk;
 				}
 			}
 			popc(-cdc - 2);
 		}
 	}
+
+	// -------------------------------------
+	// shell
+	// -------------------------------------
+	void shell()
+	{
+		comv(true);
+		rgb(200, 200, 200);
+
+		edge e;
+		loopi(16) {
+			real ang = __ai * PI2;
+			real r = 2.0f;
+			vec p = vec(cos(ang), 0, sin(ang)) * r;
+			e = e | p;
+		}
+
+		begintke(e);
+		trunk(0, 58,
+			trunk_cb(d){
+				rot(blend(10, 45, d / 58.), vec3::UX);
+				mov(vec3::UX * 0.05);
+				scl(0.97);
+				ext(blend(1, 0.1, d / 58.));
+				face();
+			}
+		);
+		endtk;
+	}
 }
+
+// -------------------------------------
+// test
+// -------------------------------------
 void test()
 {
-	flowers::lotus_flower();
+	nforms::shell();
 }
