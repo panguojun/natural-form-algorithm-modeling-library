@@ -1,10 +1,10 @@
 /**************************************************
-	Algorithm to generate nature forms
+	 Algorithm to generate nature forms
 		算法生成自然形态的艺术
-		   Minimal code
-		    最简化代码
+		    Minimal code
+		      最简化代码
 **************************************************/
-#define PI2			(PI * 2.0f)
+#define PI2				(PI * 2.0f)
 #define edge			edge_t
 #define loopi(len)		for(int __len = len, i=0; i < __len; i++)
 #define __ai			(i / real(__len - 1))
@@ -252,6 +252,16 @@ namespace nforms
 	// -------------------------------------
 	// TOPE 3D
 	// -------------------------------------
+	#define trunk_cb(d) [](int d)->void
+	void trunk(int d, int maxd, std::function<void(int)> fun)
+	{
+		begintk;
+		fun(d);
+
+		if (d < maxd)
+			trunk(d + 1, maxd, fun);
+		endtk;
+	}
 	void trunk(int d = 0)
 	{
 		begintk;
@@ -264,27 +274,20 @@ namespace nforms
 				trunk(d + 1);
 		endtk;
 	}
-	#define trunk_cb(d) [](int d)->void
-	void trunk(int d, int maxd, std::function<void(int)> fun)
-	{
-		begintk;
-		fun(d);
-
-		if (d < maxd)
-			trunk(d + 1, maxd, fun);
-		endtk;
-	}
+	
 	void branch(int d = 0)
 	{
+		real ang;
 		begintk;
 			ext(5.);
 			face();
+
 			pushc();
-			real ang = 20.;
+			ang = rrnd(-8., 8.);
 			loopi(5) {
 				push();
-				ang = ang * 0.7 - 10.;
 				pit(ang);
+				yaw(rrnd(0., 18.));
 				scl(0.95);
 				ext(1.);
 				face();
@@ -296,28 +299,50 @@ namespace nforms
 			popc();
 
 			pushc();
-			ang = -20.;
-			loopi(5) {
+			ang = rrnd(-8., 8.);
+			loopi(6) {
 				push();
-				ang = ang * 0.8 + 10.;
 				pit(ang);
+				yaw(-rrnd(0., 18.));
 				ext(1.);
-				scl(0.95);
+				scl(0.925);
 				face();
 			}
-			if (d < 4.) {
+			if (d < 5.) {
 				branch(d + 1.);
 			}
-			pop(5);
+			pop(6);
 			popc();
 
 		endtk;
 	}
 
 	// -------------------------------------
+	// tree
+	// -------------------------------------
+	void tree()
+	{
+		comv(true);
+		rgb(200, 200, 200);
+
+		edge e;
+		loopi(8) {
+			real ang = __ai * PI2;
+			real r = 2.0f;
+			vec p = vec(cos(ang), 0, sin(ang)) * r;
+			p.y *= blend2(1., 8., __ai, 2.);
+			e = e | p;
+		}
+
+		begintke(e);
+		branch();
+		endtk
+	}
+
+	// -------------------------------------
 	// lotus
 	// -------------------------------------
-	void trunk_lotus_flower1(int len, int d)
+	void trunk_lotus1(int len, int d)
 	{
 		begintk;
 		rot(blend(-10, 10, d / real(len)), coord().ux);
@@ -327,10 +352,10 @@ namespace nforms
 		face();
 
 		if (d < len)
-			trunk_lotus_flower1(len, d + 1);
+			trunk_lotus1(len, d + 1);
 		pop();
 	}
-	void trunk_lotus_flower2(int len, real sz, int d)
+	void trunk_lotus2(int len, real sz, int d)
 	{
 		begintk;
 		rot(blend(-10, 10, d / 13.), coord().ux);
@@ -339,10 +364,10 @@ namespace nforms
 		face();
 
 		if (d < len)
-			trunk_lotus_flower2(len, sz, d + 1);
+			trunk_lotus2(len, sz, d + 1);
 		endtk;
 	}
-	void lotus_flower()
+	void lotus()
 	{
 		comv(true);
 
@@ -362,7 +387,7 @@ namespace nforms
 					e = e | p;
 				}
 				push(e);
-				trunk_lotus_flower1(15 + 5 * j, 0);
+				trunk_lotus1(15 + 5 * j, 0);
 				pop();
 			}
 			{
@@ -378,7 +403,7 @@ namespace nforms
 				loopi(8) {
 					begintke(e);
 					yaw(45 * i);
-					trunk_lotus_flower2(10 + j * 4, blend(0.8, 1.0, __aj), 0);
+					trunk_lotus2(10 + j * 4, blend(0.8, 1.0, __aj), 0);
 
 					endtk;
 				}
@@ -400,6 +425,7 @@ namespace nforms
 			real ang = __ai * PI2;
 			real r = 2.0f;
 			vec p = vec(cos(ang), 0, sin(ang)) * r;
+			p.y *= blend2(1., 8., __ai, 2.);
 			e = e | p;
 		}
 
@@ -422,5 +448,5 @@ namespace nforms
 // -------------------------------------
 void test()
 {
-	nforms::shell();
+	nforms::tree();
 }
