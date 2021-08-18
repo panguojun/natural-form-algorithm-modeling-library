@@ -1,8 +1,8 @@
 /**************************************************
-	 Algorithm to generate nature forms
-		算法生成自然形态的艺术
-		    Minimal code
-		      最简化代码
+	Algorithm to generate nature forms
+	      算法生成自然形态的艺术
+		Minimal code
+		  最简化代码
 **************************************************/
 #define PI2				(PI * 2.0f)
 #define edge			edge_t
@@ -95,9 +95,12 @@ namespace nforms
 	}
 
 	// draw
-	inline void face()
+	inline void face(int type = 0)
 	{
-		face(estack[estack.size() - 2], estack.back());
+		if(type == 1)
+			face_odd(estack[estack.size() - 2], estack.back());
+		else
+			face(estack[estack.size() - 2], estack.back());
 	}
 	
 	// coord
@@ -151,6 +154,17 @@ namespace nforms
 	}
 
 	// rotation
+	void rotex(real degree, crvec ax, crvec o)
+	{
+		float ang = degree * PI / 180.0f;
+		coord_t& cb = coordstack.back();
+
+		rotedge(estack.back(), ang, o, ax);
+
+		cb.ux.rot(ang, ax);
+		cb.uz.rot(ang, ax);
+		cb.uy = cb.ux.cross(cb.uz).normcopy();
+	}
 	void rot(real degree, crvec ax)
 	{
 		float ang = degree * PI / 180.0f;
@@ -274,7 +288,6 @@ namespace nforms
 				trunk(d + 1);
 		endtk;
 	}
-	
 	void branch(int d = 0)
 	{
 		real ang;
@@ -415,31 +428,37 @@ namespace nforms
 	// -------------------------------------
 	// shell
 	// -------------------------------------
+	#define curstack	estack.back()
 	void shell()
 	{
 		comv(true);
-		rgb(200, 200, 200);
+		rgb(200, 200, 150);
 
 		edge e;
-		loopi(16) {
-			real ang = __ai * PI2;
-			real r = 2.0f;
+		loopi(64) {
+			real ang = __ai * PI;
+			real r = 12.0f;
 			vec p = vec(cos(ang), 0, sin(ang)) * r;
-			p.y *= blend2(1., 8., __ai, 2.);
+			p.x *= blend(1., 8., __ai, 18);
+
 			e = e | p;
 		}
 
 		begintke(e);
+		
 		trunk(0, 58,
 			trunk_cb(d){
-				rot(blend(10, 45, d / 58.), vec3::UX);
-				mov(vec3::UX * 0.05);
+				rot(blend(30, 45, d / 58.), vec3::UX);
+			
+				mov(vec3::UX * blend(0.5, 0.35, d / 58.));
 				scl(0.97);
-				ext(blend(1, 0.1, d / 58.));
+				ext((d % 2 == 1 ? 1 : 0.25) * blend(1, 0.25, d / 58.) * 0.5);
 				face();
 			}
 		);
 		endtk;
+
+		savesubmesh3DS("C:\\Users\\18858\\Documents\\LAB\\ZEXE\\shell.obj", SUBMESH);
 	}
 }
 
@@ -448,5 +467,5 @@ namespace nforms
 // -------------------------------------
 void test()
 {
-	nforms::tree();
+	nforms::shell();
 }
