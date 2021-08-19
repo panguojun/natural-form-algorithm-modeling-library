@@ -198,3 +198,9 @@ void goldenfish_head6(vec3 p0, vec3 v0, int len0, int wid)
 		}
 	}
 }
+void draw() 
+{		
+	vec3 v(0.5, 0.05, -0.5);
+	goldenfish_body4(vec3(0.5, 0.5, 0.5), v, 2000);	
+	goldenfish_head6(vec3(0.36, 0.46, 0.5) + v * 0.35, vec3(0.8, -0.28, -0.35), 8000, 1000);
+}
