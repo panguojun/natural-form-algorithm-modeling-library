@@ -269,3 +269,150 @@ void juzhi(vec p, vec v, int len0 = 1000, real r00 = 0.005, int depth = 0)
 		}
 	}
 }
+
+// --------------------------------------------------------
+// 向日葵
+// --------------------------------------------------------
+int findneartst(const vec& p, const std::vector<vec>& pts, real& mindis)
+{
+	mindis = 100000;
+	int retind = -1;
+	for(int i = 0; i < pts.size(); i ++)
+	{
+		real dis = (p - pts[i]).sqrlen();
+		if(dis < mindis)
+		{
+			mindis = dis;
+			retind = i;
+		}
+	}
+	return retind;
+}
+
+void qiuti2(const std::vector<vec>& pts, const std::vector<real>& rads)
+{
+	real r = 2.5;
+	for(int i = 0; i < IMAGESCALE; i += 4)
+	for(int j = 0; j < IMAGESCALE; j += 8)
+	{
+		vec2 p = vec2(i / FIMAGESCALE, j / FIMAGESCALE);
+		real u = blend(0, PI, p.y), v = blend(0, 2 * PI, p.x);
+		
+		real x = r * sin(u) * cos(v);
+		real y = r * sin(u) * sin(v);
+		real z = r * cos(u);
+		vec pp = vec(x, y, z);
+		//pp.rot(PI / 4, vec::UY);
+		
+		pp = pp * 0.2 + vec(0.5, 0.5, 0.5);
+		
+		real mindis = 0;
+		int ind = findneartst(pp, pts, mindis);
+		if(ind >= 0)
+		{
+			//mindis = sqrt(mindis);
+			real rad = rads[ind];
+			
+			const vec& np = pts[ind];
+			pp.x = blend(np.x, pp.x, 0.5, 1);
+			pp.y = blend(np.y, pp.y, 0.5, 1);
+			pp.z = blend(np.z, pp.z, 0.5, 1);
+		}		
+		
+		int cor = blendcor(0xFF0000FF, 0xFFFFFFFF, p.y);
+		
+		pixel(pp, cor);
+	}		
+}
+
+void qiuti(const std::vector<vec>& pts, const std::vector<real>& rads)
+{
+	real r = 2.5;
+	for(int i = 0; i < IMAGESCALE; i += 4)
+	for(int j = 0; j < IMAGESCALE; j += 8)
+	{
+		vec2 p = vec2(i / FIMAGESCALE, j / FIMAGESCALE);
+		real u = blend(0, PI, p.y), v = blend(0, 2 * PI, p.x);
+		
+		real x = r * sin(u) * cos(v);
+		real y = r * sin(u) * sin(v);
+		real z = r * cos(u);
+		vec pp = vec(x, y, z);
+		//pp.rot(PI / 4, vec::UY);
+		
+		pp = pp * 0.2 + vec(0.5, 0.5, 0.5);
+		
+		real mindis = 0;
+		int ind = findneartst(pp, pts, mindis);
+		if(ind >= 0)
+		{
+			//mindis = sqrt(mindis);
+			real rad = rads[ind];
+			
+			const vec& np = pts[ind];
+			pp.x = blend(np.x, pp.x, 0.5, 1);
+			pp.y = blend(np.y, pp.y, 0.5, 1);
+			pp.z = blend(np.z, pp.z, 0.5, 1);
+		}		
+		
+		int cor = blendcor(0xFF0000FF, 0xFFFFFFFF, p.y);
+		
+		pixel(pp, cor);
+	}		
+}
+// ------------------------------------------------------------------------------------------------
+real getnearestdis(const std::vector<vec2>& plist, const std::vector<real>& radlist, const vec2& p, int& ind)
+{	
+	real mindis = 10000;
+	for(int i = 0; i < plist.size(); i ++)
+	{
+		real dis = (plist[i] - p).sqrlen();
+		if(dis < mindis && dis < radlist[i])
+		{
+			mindis = dis;
+			ind = i;
+		}		
+	}
+	return sqrt(mindis);
+}
+
+// ------------------------------------------------------------------------------------------------
+void xiangrikui(vec2 o)
+{	
+	std::vector<vec2> plist;
+	std::vector<real> radlist;
+	std::vector<int> corlist;
+	
+	real ang = 0;
+	int len = 500;
+	for(int i = 0; i < len; i ++)
+	{
+		real ai = i / real(len);
+		ang += 137.5 * PI / 180;
+		real r = blend(0, 1, ai);
+		
+		vec2 p = o + vec2(cos(ang), sin(ang)) * r;
+	
+		//point(p, 8, 1);
+		
+		plist.push_back(p);
+		radlist.push_back(0.1);
+		corlist.push_back(RGB(rrnd(100, 255), rrnd(100, 255), 0));
+		
+	}
+	
+	for(int i = 0; i < IMAGESCALE; i += 1)
+	for(int j = 0; j < IMAGESCALE; j += 1)
+	{
+		vec2 p = vec2(i / FIMAGESCALE, j / FIMAGESCALE);
+				
+		{
+			int ind = 0;
+			real dis = getnearestdis(plist, radlist, p, ind);
+			real usz = radlist[ind];
+			if(dis <= usz)
+				drawmap[i][j] = blendcor(corlist[ind], 0xFF404040, dis / usz, 2);
+		}
+	}
+
+}
