@@ -513,3 +513,79 @@ void yumi(vec o, vec v, real sz)
 	gcommonvertex = 0;
 	//yumileave(o, v, sz);
 }
+// --------------------------------------------------------------------
+// 兰花
+// --------------------------------------------------------------------
+void lan(vec o, real sz, int leaf, real fang, real fang2, int len2)
+{
+	gcommonvertex = 1;
+	VECLIST e1, e2;
+	real r = sz * 0.01;
+	{
+		int len = 4;
+		for (int i = 0; i < len; i++)
+		{
+			real ai = i / real(len);
+			real ang = PI / 4 * ai;
+			vec p = o + vec(r * cos(ang), 0, r * sin(ang));
+			e1.push_back(p);
+		}
+		for (int i = 0; i < len; i++)
+		{
+			real ai = i / real(len);
+			real ang = -PI / 4 * ai;
+			vec p = o + vec(r * cos(ang), 0, r * sin(ang));
+			e2.push_back(p);
+		}
+	}
+	vec vv = vec::UY;
+	vec uz = vec::UZ;
+	vec ux = uz.cross(vv).normcopy();
+	real rnd1 = rrnd(0.01, 0.05);
+	real rnd2 = rrnd(0.02, 0.08);
+	real rnd3 = rrnd(0.5,2);
+	real d = r * 1;
+	int len = 20 + clamp(0, 200, 10, 5);
+	for (int i = 0; i <= len; i++)
+	{
+		real ai = i / real(len);
+		{// 颜色
+			color = blendcor(RGB(255, 255, 255), gcurcor, ai, 1);
+			if (ai > 0.75)
+				SETPARM(10);
+			else if(ai < 0.25)
+				SETPARM(12);
+			else
+				SETPARM(11);
+		}
+		VECLIST ee1, ee2;
+		{// 口
+			vv.rot(-rnd1 * clamp(0, 1, 11, 5), uz);
+			vv = blend(vv, -vec::UY, ai * clamp(0, rnd2, 11, 5), rnd3);
+			vv.norm();
+
+			ux = uz.cross(vv).normcopy();
+			uz = vv.cross(ux).normcopy();
+
+			r *= 1 + PARAM[3];
+			radedgeL(e1, o, r, vv, ux, uz, ai, ee1);
+			radedgeR(e2, o, r, vv, ux, uz, ai, ee2);
+		}
+		{// 节间距 
+			o += vv * (1 + PARAM[4]) * d;
+		}
+		if (i > 0 && i < len)
+		{
+			face(e1, ee1);
+			binvnorm = 1;
+			face(e2, ee2);
+			binvnorm = false;
+		}
+		gverindfindstart = (int)gsubmesh.vertices.size();
+		e1 = ee1;
+		e2 = ee2;
+	}
+	gverindfindstart = 0;
+	gcommonvertex = 0;
+	binvnorm = false;
+}
