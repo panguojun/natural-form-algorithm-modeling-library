@@ -589,3 +589,199 @@ void lan(vec o, real sz, int leaf, real fang, real fang2, int len2)
 	gcommonvertex = 0;
 	binvnorm = false;
 }
+
+// ------------------------------------------------
+// 天南星科
+// ------------------------------------------------
+void Araceae1(vec o, vec v0, real s, int depth = 0)
+{
+    DEF_SCALES2(s);
+    VECLIST e;
+    v0.norm();
+    vec p = o;
+    int len = 16;
+    for (int i = 0; i <= len; i++)
+    {
+        real ai = real(i) / (len);
+        real t = blend(0.0, 1, ai);
+        vec dp = vec::UX * (perlin(p.x * 10, p.y * 10, p.z * 10 + gtimealpha * 4) * 0.5);
+        v0 += vec::UY * 0.4; v0.norm();
+        vec np = p + (v0 + dp) * (s * 10);
+        {
+            color = blendcor(0xFF001000, 0xFF608000, ai);
+            VECLIST e1;
+            if (i == 0)
+            {
+                roundedge(e1, p, vec::UY, s, 8);
+            }
+            else
+            {
+                moveedge(e, (np - p), e1);
+                //float sc = blend(1.35, 0.5, ai, 3.5);
+                float sc = blend(1.5, 0.5, ai, 2.5);
+                sc *= blend(0.5, 1.35, ai, 0.5);
+                scaleedge(e1, sc);
+                {//
+                    vec pp = e[int(rrnd(0, 7))];
+                    gtargets.push_back(pp);
+                }
+            }
+            if (i > 0 && depth < 2 && rrnd() < 0.1)
+            {
+                vec pp = e[int(rrnd(0, 7))];
+                Araceae1(pp, (pp - p).normcopy(), s  * 0.5, depth + 1);
+            }
+            else
+                if (i > len / 2 && depth < 2 && rrnd() < 0.1)
+                {
+                    vec pp = e[int(rrnd(0, 7))];
+                    Araceae2(pp, (pp - p).normcopy(), s  * 0.25, 8, 4, 8);
+                }
+            if (i != 0)
+                face(e, e1);
+            e = e1;
+        }
+        p = np;
+    }
+    face(e, getedgecenter(e) + vec::UY * (s * 4));
+    color = 0xFFFFFFFF;
+}
+void Araceae2(vec o, vec v0, real s,
+              int n,
+              int aa,
+              int an
+              )
+{
+    DEF_SCALES2(s);
+    VECLIST e;
+    v0.norm();
+    vec p = o;
+    int len = n;
+    for (int i = 0; i <= len; i++)
+    {
+        real ai = real(i) / (len);
+        real t = blend(0.0, 1, ai);
+        vec dp = vec::UX * (perlin(p.x * 10, p.y * 10, p.z * 10 + gtimealpha * 4) * 0.75);
+        vec np = p + (v0 + dp) * (s * 10);
+        v0 = v0 + vec::UY * 0.25f; v0.norm();
+        {
+            VECLIST e1;
+            if (i == 0)
+            {//
+                roundedge(e1, p, vec::UY, 8 * s, aa);
+            }
+            else if (i < len)
+            {//
+                color = 0xFF001000;
+                moveedge(e, (np - p), e1);
+                float sc = blend(0.9, 1, ai, 3.5);
+                scaleedge(e1, sc);
+                //rotedgebynorm(e1, v0);
+                color = 0xFF008000;
+            }
+            else
+            {//
+                color = 0xFF40AAFF;
+                moveedge(e, (np - p) * 0.02, e1);
+                //scaleedge(e1, 1.2);
+                for (int ii = 0; ii < aa; ii++)
+                {
+                    VECLIST ee;
+                    unionedge(e, e1, ii, 2, ee);
+                    closeedge(ee);
+                    vec v = getedgenorm(ee);
+                    real cvg = rrnd(0.025, 0.75);
+                    for (int jj = 0; jj < an; jj++)
+                    {
+                        real ajj = jj / real(an);
+                        v -= vec::UY * blend(-0.25, cvg, ajj);
+                        v.norm();
+                        VECLIST ee1;
+                        moveedge(ee, v * (s * 5), ee1);
+                        float sc = blend(1.5, 0.1, ajj, 1.5);
+                        scaleedge(ee1, sc);
+                        face(ee, ee1);
+                        ee = ee1;
+                    }
+                }
+            }
+            if (i != 0)
+                face(e, e1);
+            e = e1;
+        }
+        p = np;
+    }
+    //face(e, getedgecenter(e) + vec::UY * (s * 4));
+    color = 0xFFFFFFFF;
+}
+void Araceae3(vec o, vec v0, real s, int n, real sz2)
+{
+    gcommonvertex = 1;
+    for(int j = 0; j < n; j ++)
+    {
+        real aj = j / real(n);
+        color = blendcor(0xFF204000, gcurcor, rrnd());
+        VECLIST e;
+        roundedge(e, o, vec::UY, s, 8);
+        o += vec::UY * (s * E2);
+        for (int i = 0; i < e.size() - 1; i++)
+        {
+            VECLIST e1;
+            e1.push_back(o);
+            e1.push_back(e[i]);
+            e1.push_back(e[i + 1]);
+            closeedge(e1);
+            
+            vec v = getedgenorm(e1);
+            v.y *= 0.4; v.norm();
+            
+            real scl2 = blend(8, 1, aj);
+            for (int ii = 0; ii <= 8; ii++)
+            {
+                real aii = ii / real(8);
+                v += vec::UY * blend(0, 0.1, aii);
+                VECLIST e2;
+                moveedge(e1, v * (s * scl2), e2);
+                float sc = blend(1.8 * sz2, 0.5, aii, 1);
+                scaleedge(e2, sc);
+                face(e1, e2);
+                e1 = e2;
+                face(e1, getedgecenter(e1) + vec::UY * (s * 4));
+            }
+        }
+        color = 0xFFFFFFFF;
+        o += vec::UY * (s * 50);
+    }
+    gcommonvertex = 0;
+}
+void Araceae4(vec o, vec v0, real s)
+{
+    color = blendcor(0xFF204000, 0xFF605000, rrnd());
+    VECLIST e;
+    roundedge(e, o, vec::UY, s, 8);
+    o += vec::UY * (s * E2);
+    for (int i = 0; i < e.size() - 1; i++)
+    {
+        VECLIST e1;
+        e1.push_back(o);
+        e1.push_back(e[i]);
+        e1.push_back(e[i + 1]);
+        closeedge(e1);
+        
+        vec v = getedgenorm(e1);
+        v.y *= 0.25; v.norm();
+        for (int ii = 0; ii <= 8; ii++)
+        {
+            real aii = ii / real(8);
+            v += vec::UY * blend(0.25, 0.35, aii);
+            VECLIST e2;
+            moveedge(e1, v * (s * 8), e2);
+            float sc = blend(1.8, 0.5, aii, 1);
+            scaleedge(e2, sc);
+            face(e1, e2);
+            e1 = e2;
+            face(e1, getedgecenter(e1) + vec::UY * (s * 4));
+        }
+    }
+    color = 0xFFFFFFFF;
+}
