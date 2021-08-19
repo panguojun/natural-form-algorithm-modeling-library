@@ -1,6 +1,6 @@
 /**************************************************
 	Algorithm to generate nature forms
-	      算法生成自然形态的艺术
+		  算法生成自然形态的艺术
 		Minimal code
 		  最简化代码
 **************************************************/
@@ -14,6 +14,8 @@
 #define begintke(e)		pushc();push(e);
 #define begintk			pushc();push();
 #define endtk			popc();pop();
+
+#define curstack		estack.back()
 
 namespace nforms
 {
@@ -67,7 +69,7 @@ namespace nforms
 	inline void pop(int n = 1)
 	{
 		if (n < 0)
-			n = estack.size() - 1;
+			n = estack.size() + n + 1;
 		for (int i = 0; i < n; i++)
 			estack.pop_back();
 	}
@@ -122,7 +124,7 @@ namespace nforms
 		cb.uy = cb.ux.cross(cb.uz).normcopy();
 	}
 
-	// ext
+	// ext / mov
 	void ext(real d)
 	{
 		VECLIST& e1 = estack.back();
@@ -233,7 +235,7 @@ namespace nforms
 	}
 
 	// -------------------------------------
-	// Debug
+	// debug
 	// -------------------------------------
 	void coorddummy0(real x = 0, real y = 0, real z = 0)
 	{
@@ -428,7 +430,6 @@ namespace nforms
 	// -------------------------------------
 	// shell
 	// -------------------------------------
-	#define curstack	estack.back()
 	void shell()
 	{
 		comv(true);
@@ -445,21 +446,78 @@ namespace nforms
 		}
 
 		begintke(e);
-		
-		trunk(0, 58,
+		trunk(0, 158,
 			trunk_cb(d){
-				rot(blend(30, 45, d / 58.), vec3::UX);
-			
-				mov(vec3::UX * blend(0.5, 0.35, d / 58.));
+				rot(blend(10, 15, d / 58.), vec3::UX);
+				mov(vec3::UX * blend(0.25, 0.15, d / 158.));
 				scl(0.97);
-				ext((d % 2 == 1 ? 1 : 0.25) * blend(1, 0.25, d / 58.) * 0.5);
-				face();
+				ext((d % 2 == 1 ? 1 : 0.25) * blend(1, 0.25, d / 158.) * 0.05);
+				face(d % 2);
 			}
 		);
 		endtk;
 
-		savesubmesh3DS("C:\\Users\\18858\\Documents\\LAB\\ZEXE\\shell.obj", SUBMESH);
+		//savesubmesh3DS("C:\\Users\\18858\\Documents\\LAB\\ZEXE\\shell.obj", SUBMESH);
 	}
+	void pipeshell()
+	{
+		comv(true);
+		rgb(200, 200, 150);
+
+		edge e;
+		loopi(32) {
+			real ang = __ai * PI2;
+			real r = 12.0f;
+			vec p = vec(cos(ang), 0, sin(ang)) * r;
+			
+			e = e | p;
+		}
+
+		begintke(e);
+		trunk(0, 158,
+			trunk_cb(d){
+			//rot(blend(10, 15, d / 58.), vec3::UX);
+			//mov(vec3::UX* blend(0.25, 0.15, d / 158.));
+
+			rot(blend(-1, 1, noise(coord().o)), vec3::UX);
+			scl(0.995);
+			ext((d % 2 == 1 ? 1 : 0.25)* blend(1, 0.25, d / 158.) * 1);
+			face(d % 2);
+		}
+		);
+		endtk;
+
+		//savesubmesh3DS("C:\\Users\\18858\\Documents\\LAB\\ZEXE\\shell.obj", SUBMESH);
+	}
+	void shiyan1()
+	{
+		comv(true);
+		rgb(200, 200, 150);
+
+		edge e;
+		loopi(64) {
+			real ang = __ai * PI;
+			real r = 12.0f;
+			vec p = vec(cos(ang), 0, 0.1 + sin(ang)) * r;
+			p.z *= blend2(2., 1., __ai, 0.125);
+
+			e = e | p;
+		}
+		e = e | (e.mirrorcpy(vec::ZERO, vec::UX).invertcpy());
+
+		begintke(e);
+		trunk(0, 58,
+			trunk_cb(d){
+			rot(blend(1, 5, d / 58.), vec3::UZ);
+			mov(vec3::UX* blend(0.25, 0.15, d / 58.) * 0.1);
+			scl(0.97);
+			ext((d % 2 == 1 ? 1 : 0.25)* blend(1, 0.25, d / 58.) * 0.05);
+			face(d % 2);
+		}
+		);
+		endtk;
+	}
+	
 }
 
 // -------------------------------------
@@ -467,5 +525,5 @@ namespace nforms
 // -------------------------------------
 void test()
 {
-	nforms::shell();
+	nforms::shiyan1();
 }
