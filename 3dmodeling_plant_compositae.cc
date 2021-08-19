@@ -245,3 +245,95 @@ void chrysanthemum(vec o, real sz, real fw1, real fw2, int n0, int color0, int l
         p = np;
     }
 }
+// -------------------------------------------------------------
+// 八角金盘
+// -------------------------------------------------------------
+void fatsia_leave(vec o, vec v, vec n, real len, real w, int color0)
+{
+	real t = blend(0.1, 1, gtimealpha);
+	color = color0;
+	gcommonvertex = 1;
+	vec vside = v.cross(n); vside.norm();
+	vec p1 = o - vside * (w / 32);
+	vec p2 = o + vside * (w / 32);
+	real h = w / 200;
+	real tk = h / 2.5;
+	VECLIST e;
+	e.push_back(o - vside * (w / 180));
+	e.push_back(p1 + n * h);
+	e.push_back(o - n * tk);
+	e.push_back(p2 + n * h);
+	e.push_back(o + vside * (w / 180));
+	closeedge(e);
+
+	VECLIST le = e;
+	real step = w / 4;
+	int cnt = 8;
+	for (int i = 0; i < cnt; i++)
+	{
+		real ai = i / real(cnt);
+		static real scales[] = { 1.5, 2, 1.5, 1.25, 1.0, 0.75, 0.5, 0.1 };
+		extrudeedge(e, step * 0.75);
+		scaleedge(e, scales[i]);
+		rotedge(e, rrnd(-PI / 18, PI / 8), vside);
+		{
+			int cor0 = color;
+			for (int ii = 0; ii < le.size() - 1; ii++)
+			{
+				plane(le[ii], le[ii + 1], e[ii + 1], e[ii]);
+			}
+			color = cor0;
+		}
+		le = e;
+	}
+	gcommonvertex = 0;
+}
+// -------------------------------------------------------------
+void fatsia(vec o, vec v0, real s, int color0, real leafsz, int nl)
+{
+	DEF_SCALES2(s);
+	VECLIST e;
+	v0.norm();
+	vec p = o;
+	vec dv = v0;
+    real dpdeta = rrnd(0, 172.862);
+    real dpdeta2 = rrnd(0, 172.862);
+	int len = lotus1_n;
+	for (int i = 0; i <= len; i++)
+	{
+		real ai = real(i) / (len);
+		real t = blend(0.0, 1, ai);
+		vec dp = vec::UX * ((perlin(p.x * 10, p.y * 10 + dpdeta2, p.z * 10 + dpdeta))) + vec::UZ * ((perlin(p.x * 10 + dpdeta2, p.y * 10 + dpdeta, p.z * 10)));
+		vec np = p + (v0 + dp) * (USIZE * 20);
+		{
+			color = blendcor(0xFF102000, color0, ai, 2);
+			VECLIST e1;
+			if (i == 0)
+			{//
+				roundedge(e1, p, vec::UY, s, 8);
+			}
+			else
+			{//
+				dv = np - p;
+				moveedge(e, dv, e1);
+			}
+			if (i != 0)
+				face(e, e1);
+			e = e1;
+		}
+		p = np;
+	}
+	{//
+		vec v = dv.normcopy();
+		vec vx, vy;
+		v2vxvy(v, vy, vx);
+		int nn = nl;
+		for (int ii = 0; ii < nn; ii++)
+		{
+			real aii = ii / MAX(8, real(nn));
+			real scl = 5 * leafsz;
+			fatsia_leave(getedgecenter(e), vx.rotcopy(blend(0, 2 * PI, aii), v), v, s * 20 * scl, s * 5 * scl, color0);
+		}
+	}	
+	color = 0xFFFFFFFF;
+}
