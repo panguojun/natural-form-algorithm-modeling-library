@@ -429,3 +429,87 @@ void bamboo(vec o, vec v0, real s, int len0 = 10, int depth = 0)
 	}
 	color = 0xFFFFFFFF;
 }
+// -------------------------------------------------------------
+// 玉米
+// -------------------------------------------------------------
+void yumili(vec o, vec v, vec face, real sz)
+{
+	color = blendcor(0xff00a0ff, 0xff00ffff, rrnd());
+	vec side = face.cross(v).normcopy();
+	VECLIST e;
+	e.resize(4);
+	e[0] = o - side * (sz / 2) + v * (sz / 4);
+	e[1] = o - side * (sz / 2) - v * (sz / 4);
+	e[2] = o + side * (sz / 2) - v * (sz / 4);
+	e[3] = o + side * (sz / 2) + v * (sz / 4);
+	closeedge(e);
+	plane(e[0], e[1], e[2], e[3]);
+	extrudeedgeex(e, sz, 0.5);
+	color = 0xffaaaaaa;
+	//plane(e[0], e[1], e[2], e[3]);
+}
+void yumileave(vec o, vec v, real sz)
+{
+	vec n = vec::UZ;
+	color = 0xff008000;
+	VECLIST e;
+	roundedge(e, o, v, sz, 16, 0);
+	vec p = o;
+	int len = 15;
+	for (int i = 0; i < len; i++)
+	{
+		real ai = i / (real)len;
+		VECLIST e1;
+		extrudeedge(e, sz, e1);
+		p += v * 0.5f;
+		vec side = v.cross(n).normcopy();
+		v.rot(PI / 38, side);
+		n = side.cross(v).normcopy();
+
+		for (int ii = 0; ii < e1.size(); ii++)
+		{
+			real aii = ii / real(e1.size());
+			real ang = blend2(-1, 1, aii) * blend(PI * 2, -PI / 4, ai, 0.25);
+			vertex& v = e1[ii];
+			v.p = p + (side * cos(ang) + n * sin(ang)) * blend2(0.01, 1 * aii, ai, 2);
+		}
+
+		if (i > 0)
+			face(e, e1);
+		e = e1;
+	}
+}
+void yumi(vec o, vec v, real sz)
+{
+	color = gcurcor;
+	VECLIST e;
+	gcommonvertex = 1;
+	roundedge(e, o, v, sz, 16, 0);
+	int len = 10;
+	for (int i = 0; i < len; i++)
+	{
+		real ai = i / (real)len;
+		VECLIST e1;
+		color = gcurcor;
+		extrudeedge(e, sz / 2, e1);
+		real r = i < 4 ? blend(sz * 0.75, sz, i / 4.0f, 0.25) : blend(sz, sz / 20, ((i - 4) / (real)len), 4);
+		r *= 0.5;
+		radedge(e1, r);
+		vec oo = getedgecenter(e1);
+
+		if (rand() % 10 == 0)
+		{
+			e1.pop_back();
+			e.pop_back();
+		}
+		for (int ii = 0; ii < e1.size(); ii++)
+		{
+			yumili(e1[ii], v, (o-e1[ii]).normcopy(), sz);
+		}
+		if (i > 0)
+			face(e, e1);
+		e = e1;
+	}
+	gcommonvertex = 0;
+	//yumileave(o, v, sz);
+}
