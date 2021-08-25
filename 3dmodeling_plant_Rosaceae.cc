@@ -332,3 +332,115 @@ void shanchaleave(vec o, vec uy = vec::UY, real s = 0.1, int len0 = 20, int dept
 	}
 	gcommonvertex = lstgcommonvertex;
 }
+// -------------------------------------------------
+// 苹果 apple
+// -------------------------------------------------
+void drawapple(vec3 p, vec3 v)
+{	
+	vec3 lgtdir(1, -1, 1); lgtdir.norm();
+	v.norm();
+	for(int i = 0; i < 500; i ++)
+	{
+		p = p + v * 0.000025;
+		
+		real r1 = 0.1 * blend2(0, 1, real(i) / 500, 4);
+		real r2 = 0.04 * blend2(0, 1, real(i) / 500, 4);
+		real rr = blend(r1, r2, real(i) / 500) * 0.25;
+		
+		vec3 lstipp1[1000];
+		vec3 lstiipp1;
+		vec3 norm0 = v.cross(vector3::UZ);norm0.norm();
+		for(int ii = 0; ii < 1000; ii ++)
+		{	
+			vec3 norm = norm0;
+			real ang1 = blend(0, 2 * PI, real(ii) / 1000);				
+			quaternion q(ang1 < PI ? ang1 : ang1 - PI, v);
+			real ang2 = blend(PI / 2 + PI / 2, PI / 114, real(i) / 500, 1);
+			norm = v.rotcopy(ang2, ang1 < PI ? q * norm : q * (- norm));
+			
+			vec3 pp = p + norm * rr;
+			
+			int cor;
+			{// color
+				norm = -(lstipp1[ii] - pp).cross(lstiipp1 - pp);
+				norm.norm();
+				real lum = -lgtdir.dot(norm);	
+				
+				cor = blendcor(0xFF00FFFF, 0xFF0000FF, blend2d(0, 1, 0.5 + 0.5 * sin(pp.x * 8*PI*real(i) / 500), 0.5 + 0.5*sin(pp.y * 8*PI*real(ii) / 1000)));
+				cor = blendcor(0xFF00FF00, cor, real(i) / 500, .25);
+				cor = blendcor(1, cor, 0.5 + 0.5 * lum, 1);
+				
+				lstiipp1 = pp;
+				lstipp1[ii] = pp;
+			}
+			if(i > 0 && ii > 0)
+			{
+				pixel(viewprj(pp), cor, 1, pp.z);
+			}			
+		}		
+	}
+}
+
+// ------------------------------------------------
+void appleleaf(vec3 p, vec3 v)
+{
+	real sz = rrnd(0.5, 1.2);
+	
+	vec3 lgtdir(1, -1, 1); lgtdir.norm();
+	v.norm();
+	vec3 g(0, -0.0001, 0);
+	vec3 up = vec3::UY;
+	real deta = rrnd(.5, 1);
+	for(int i = 0; i < 500; i ++)
+	{
+		real ai = real(i) / 500;
+		v = v + g;
+		v.norm();
+		p = p + v * (0.0002 * sz);
+		vec3 norm0 = v.cross(up);norm0.norm();
+		up = norm0.cross(v);
+		real alpha = blend2d(0.8, 1.2, p.x, p.y);
+		vec3 p1 = p + (up + norm0) * blend2(0, 0.02 * sz * alpha, ai, 2);
+		vec3 p2 = p + (up - norm0) * blend2(0, 0.02 * sz * alpha, ai, 2);
+		
+		for(int ii = 0; ii < 250; ii += 1)
+		{
+			real aii = real(ii) / 250;								
+			{
+				vec3 pp = blend(p, p1, aii);				
+				
+				vec3 norm = (up + norm0);
+				norm.norm();
+				//real lum = -lgtdir.dot(norm);			
+		
+				int cor = blendcor(RGB(116, 198, 98), RGB(17, 48, 17), 0.5 + 0.5 * sin(alpha * 80 * (0.75 * ai - 0.25 * aii)));	
+				if(norm.z > 0)
+					cor = blendcor(cor, RGB(27, 48, 20), aii);
+				else
+					cor = blendcor(cor, RGB(177, 248, 140), aii);
+				
+				//cor = blendcor(1, cor, 0.5 - 0.5 * up.z, 1);					
+				
+				pixel(pp, cor);		
+	
+			}
+			{
+				vec3 pp = blend(p, p2, aii);		
+				alpha = blend2d(0.8, 1.2, pp.x, pp.y);
+				vec3 norm = (up - norm0);
+				norm.norm();
+				//real lum = -lgtdir.dot(norm);			
+
+				int cor = blendcor(RGB(36,98, 58), RGB(17, 48, 17), 0.5 + 0.5 * sin(alpha * 80 * (0.75 * ai - 0.25 * aii)));	
+				if(norm.z > 0)
+					cor = blendcor(cor, RGB(27, 48, 20), aii);	
+				else
+					cor = blendcor(cor, RGB(177, 248, 140), aii);	
+
+				// cor = blendcor(1, cor, 0.5 - 0.5 * norm.z, 1);
+
+				pixel(pp, cor);
+			 }					
+		}
+	}
+}
