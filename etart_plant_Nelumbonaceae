@@ -175,3 +175,111 @@ void flowercore(vec3 p, vec3 v)
 		}
 	}	
 }
+// -------------------------------------------------
+void lianpeng(vec3 p, vec3 v, int len, int wid0)
+{
+	vec3 cp1[] = {
+		v,
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy())
+	};	
+	for(int i = 0; i < len; i ++)
+	{
+		real alp = real(i) / len;
+		real alp2d = blend2d(-1, 1, p.x, p.y);	
+		v = bezier2(cp1, alp);		
+		v.norm();
+		p = p + v * 0.00035;
+		int wid = blend(0.25, 1, alp2d) * wid0;
+		for(int ii = 0; ii < wid; ii ++)
+		{
+			real beta = real(ii) / wid0;	
+			if(p.y > level)
+			{
+				pixelAA(p + vec3(blend(0, 0.001, beta), 0, 0), blendcor(0xFFFFFFCC, 1,  beta, 2));
+				pixelAA(p - vec3(blend(0, 0.001, beta), 0, 0), blendcor(0xFFFFFFCC, 1, beta, 2));						
+			}			
+		}
+		
+		if(i == len - 1)
+		{
+			int leaflen = len * 0.5;
+			//v = vec3(0.5, 0.5, 0.25);v.norm();
+			vec3 zz = vec3::UZ;			
+			{			
+				vec3 vv0 = zz.cross(v);vv0.norm();					
+				quaternion q(rrnd(-PI, PI), v);	
+				zz = (q * vv0).cross(v);zz.norm();				
+				flowercore(p, v);
+			}
+		}
+	}
+}
+
+void drawHe1(vec3 p, vec3 v, int len, int wid0)
+{
+	vec3 cp1[] = {
+		v,
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy())
+	};	
+	for(int i = 0; i < len; i ++)
+	{
+		real alp = real(i) / len;
+		real alp2d = blend2d(-1, 1, p.x, p.y);	
+		v = bezier2(cp1, alp);		
+		v.norm();
+		p = p + v * 0.00035;
+		int wid = blend(0.25, 1, alp2d) * wid0;
+		for(int ii = 0; ii < wid; ii ++)
+		{
+			real beta = real(ii) / wid0;	
+			if(p.y > level)
+			{
+				pixelAA(p + vec3(blend(0, 0.001, beta), 0, 0), blendcor(0xFFFFFFCC, 1,  beta, 2));
+				pixelAA(p - vec3(blend(0, 0.001, beta), 0, 0), blendcor(0xFFFFFFCC, 1, beta, 2));						
+			}			
+		}
+		
+		
+		if(i == len - 1)
+		{
+			v = blend(v, vec3::UZ, rrnd(0, 0.45));
+			v.norm();
+			
+			int leaflen = len * 0.5;
+			//vec3 vv0 = vec3::UZ.cross(v);vv0.norm();
+			vec3 zz = vec3::UX;
+			for(int j = 0; j < len * 2; j ++)
+			{
+				real betaj = real(j) / (len * 2);				
+				vec3 vv0 = zz.cross(v);vv0.norm();					
+				quaternion q(PI * 1.0 / (len * 2), v);				
+				zz = (q * vv0).cross(v);zz.norm();			
+				vec3 vv = q * vv0;
+				vec3 p1 = p;
+				
+				for(int ii = 0; ii < leaflen; ii ++)
+				{
+					real beta1 = real(ii) / leaflen;			
+					
+					real alp2d1 = blend2d(0, 1, 0.5 + 0.5 * sin(2 * PI * betaj), beta1);	
+					
+					vv = vv + v * blend(-0.005, 0.005, 0.5 + 0.5 * sin(beta1 * 12))*blend(-1, 1, alp2d1);
+					vv.norm();
+					p1 = p1 + vv * 0.00025;						
+					
+					real tbetaj = betaj * blend(0.5, 1.5, alp2d1);					
+					real xxx = blend2d(0, 1, 0.5 + 0.5 * sin(PI * 10 * betaj * alp2d), blend(0.4, 0.6, beta1));
+					if(xxx < 0.9)
+					{
+						int cor = blendcor(0xFF008080, 1, xxx);
+						pixelAA(p1, cor);					
+					}
+				}
+			}
+		}
+	}
+} 
