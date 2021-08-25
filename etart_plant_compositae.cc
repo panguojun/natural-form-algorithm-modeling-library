@@ -416,3 +416,79 @@ void xiangrikui(vec2 o)
 	}
 
 }
+
+// ------------------------------------------------
+// 蒲公英 Taraxacum
+// ------------------------------------------------
+void drawpugongying(vec3 p, int rsz, int asz, real alpha0 = 1, int depth = 0)
+{
+	for(int i = 0; i < asz; i ++)
+	{
+		real ai = real(i) / asz;
+		real ang = blend(0, 2 * PI, ai);
+		vec3 v = vec3::UX.rotcopy(ang, vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy());
+		vec3 pp = p;
+		for(int ii = 0; ii < rsz; ii ++)
+		{
+			real aii = real(ii) / rsz;
+			real alpha = blend(alpha0, 0, aii);
+			v = v + rndvecmap[ii][i] * 0.1;
+			v.norm();
+			pp = pp + v * 0.001;
+			pixel(pp, 1, alpha);
+			
+			if(rrnd(0, 10000) < 100 && depth < 1)
+			{
+				drawpugongying(pp, rsz / 8, asz / 2, alpha / 2, depth + 1);
+			}
+		}
+	}
+}
+
+// ------------------------------------------------
+void jing(vec3 p, vec3 v)
+{	
+	v.norm();
+	vec3 cp1[] = {
+		v,
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy()),
+		v.rotcopy(rrnd(-PI, PI), vec3(rrnd(-1, 1), rrnd(-1, 1), rrnd(-1, 1)).normcopy())
+	};	
+	cp1[3].y = abs(cp1[3].y);
+	
+	vec3 v0 = v;
+	vec3 up = vec3::UZ;
+	for(int i = 0; i < 1500; i ++)
+	{
+		real ai = real(i) / 1500;			
+		v = bezier3(cp1, ai);
+		v.norm();
+		p = p + v * 0.0005;
+		real w = blend2(0, 0.002, ai, 2);
+		for(int ii = 0; ii < 64; ii ++)
+		{
+			real aii = real(ii) / 64;
+			real ang1 = blend(0, 2 * PI, aii);	
+			
+			vec3 norm = v.cross(up);norm.norm();	
+			up = norm.cross(v);up.norm();
+			norm.rot(ang1, v);
+			vec3 pp = p + norm * w;
+			
+			int cor = RGB(55, 55, 5);	
+			pixel(pp, cor);
+		}
+		if(i == 1500 - 1)
+		{
+			drawpugongying(p, rrnd(100, 120), rrnd(50, 100));
+		}
+		
+	}
+}
+// ------------------------------------------------
+void draw()
+{	
+	for(int i = 0; i < 10; i ++)
+		jing(vec3(rrnd(0.35, 0.65), 0.12, 1.0 + 0.5), vec3(rrnd(-0.1, 0.1), 0.5, -0.5));
+}
