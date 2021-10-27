@@ -44,18 +44,18 @@ void butflyWing(vec p, vec v, vec up)
 				pixel(pp, 1);
 			else
 			{
-					if(aii < 0.75 && abs(sin(ai * PI * 4)) < rrnd(0.1, 0.2))
-						pixel(pp, 1);
-					else if(abs(sin(ai * PI * 8)) < rrnd(0.1, 0.2))
-						 pixel(pp, 1);
-					else if(aii > 0.85)
-						pixel(pp, 1);
-					else
-					{
-						vec3 normal = (lstpp - pp).cross(lowerpp[ii] - pp); normal.norm();
-						real ndot = abs(normal.dot(lgt));
-						pixel(pp, blendcor(hutcor, hutcor1, ndot));
-					}
+				if(aii < 0.75 && abs(sin(ai * PI * 4)) < rrnd(0.1, 0.2))
+					pixel(pp, 1);
+				else if(abs(sin(ai * PI * 8)) < rrnd(0.1, 0.2))
+					 pixel(pp, 1);
+				else if(aii > 0.85)
+					pixel(pp, 1);
+				else
+				{
+					vec3 normal = (lstpp - pp).cross(lowerpp[ii] - pp); normal.norm();
+					real ndot = abs(normal.dot(lgt));
+					pixel(pp, blendcor(hutcor, hutcor1, ndot));
+				}
 			}
 			lstpp = lowerpp[ii] = pp;
 		}
