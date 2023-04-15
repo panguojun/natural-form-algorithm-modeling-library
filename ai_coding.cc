@@ -1,3 +1,14 @@
+void shape()
+{
+    topo E;
+    vec2 V[8];
+    cst2 C[8];
+    grid1 g1 = {1,8,18};
+    g1.walk([E, V, C](real u){
+        E
+        pixel(p);
+    })
+}
 // 插值函数
 float lerp(float a, float b, float t) {
     return (1 - t) * a + t * b;
