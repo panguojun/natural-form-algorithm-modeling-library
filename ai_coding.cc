@@ -49,7 +49,7 @@ float perlin_noise(crvec2 p, float freq, float amp, std::vector<vec2>& grad, int
     float ix1Lerp = cosine(n0, n1, sx);
     return amp * cosine(ix0Lerp, ix1Lerp, sy);
 }
-
+// ----------------------------------
 float rndmap(int x, int y)
 {
     int n = x + y * 57;
@@ -71,9 +71,17 @@ float bezier(float x, float c[4])
     res += ttt * c[3];
     return res;
 }
+float* rnd_arr(int size, float minVal, float maxVal) 
+{
+    static float* arr = new float[size];
+    for (int i = 0; i < size; i++) {
+        arr[i] = rrnd(minVal, maxVal);
+    }
+    return arr;
+}
 void haidai(vec2 p, int len)
 {
-    static real s_t1[4] = { rrnd(0, 1), rrnd(0, 1), rrnd(0, 1), rrnd(0, 1) }; // 随机数数组
+    real* s_t1 = rnd_arr(4); // 随机数数组
 
     for (int i = 0; i < len; i++) // 循环绘制每个点
     {
