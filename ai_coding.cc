@@ -1,12 +1,16 @@
-void shape()
+void shape_alpha()
 {
     topo E;
     vec2 V[8];
     cst2 C[8];
-    grid1 g1 = {1,8,18};
-    g1.walk([E, V, C](real u){
-        E
-        pixel(p);
+    grid1 S[8] = {1,8,18};
+    E.walk([V, C, S](topo* to, int s){
+        S[s].walk([V, C, to](real t){
+            crvec2 p1 = V[to.start];
+            crvec2 p2 = V[to.end];
+            vec2 p = blend(p1, p2, t) * C[to.c];
+            pixel(p);
+        }
     })
 }
 // 插值函数
