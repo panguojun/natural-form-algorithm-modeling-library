@@ -1,3 +1,160 @@
+class BottleDragon {
+public:
+    BottleDragon() {
+        s_t[0] = rrnd(0, 1);
+        s_t[1] = rrnd(0, 1);
+        s_t[2] = rrnd(0, 1);
+        s_t[3] = rrnd(0, 1);
+    }
+
+    void update(real gtime, const vec& gtarget, const std::vector<vec>& attackpt0) {
+        if (becut <= 4) {
+            trigger++;
+            return;
+        }
+        const real USZ = 0.025;
+        const real T1 = 0.25, T2 = 0.1, T3 = 0.25;
+        switch (state) {
+        case 1:
+            if (gtime - animation1 < T1)
+                pos.y = blend(0.455, 0.525, (gtime - animation1) / T1);
+            else if (gtime - animation1 - T1 < T2)
+                pos.y = 0.525;
+            else if (gtime - animation1 - T1 - T2 < T3)
+                pos.y = blend(0.525, 0.455, (gtime - animation1 - T1 - T2) / T3);
+            break;
+        case 2:
+            dir.rot(PI * 0.005 * FT(gtime * PI, s_t));
+            pos += dir * 0.01;
+            break;
+        case 3:
+            {
+                vec vv = (gtarget - pos);
+                if (vv.len() < USZ * 4)
+                    state = 2;
+                dir = blend(dir, vv.normcopy(), 0.1);
+                dir.rot(PI * 0.003 * FT(gtime * 4 * PI, s_t));
+                pos += dir * 0.001;
+            }
+            break;
+        default:
+            break;
+        }
+        real r = 10 * USZ;
+        // head
+        drawcircle(pos, r, 0xFFFFFFFF);
+        PSET(pos + dir.rotcpy(PI / 4) * (r / 2), 0xFFFFFFFF, 0.1);
+        PSET(pos + dir.rotcpy(-PI / 4) * (r / 2), 0xFFFFFFFF, 0.1);
+        headpos = pos;
+        // mouth
+        if (state == 2) {
+            drawMouth(gtime, r, 0, attackpt0);
+        } else if (state == 1) {
+            if (gtime - animation1 < T1)
+                drawMouth(gtime, r, blend(0, PI / 50, (gtime - animation1) / T1), attackpt0);
+            else if (gtime - animation1 - T1 < T2)
+                drawMouth(gtime, r, PI / 50, attackpt0);
+            else if (gtime - animation1 - T1 - T2 < T3)
+                drawMouth(gtime, r, blend(PI / 50, -PI / 50, (gtime - animation1 - T1) / T2), attackpt0);
+        }
+        if (state == 2 || state == 3) {
+            vec p = pos - dir * r;
+            vec v = -dir.normcopy();
+            const int len = 100;
+            static vec slstpos[len] = { vec(-100, 0) };
+            if (slstpos[0].x <= -100) {
+                for (int i = 0; i < len; i++)
+                    slstpos[i] = p;
+            }
+            static vec lstp = p;
+            real step = USZ;
+            for (int i = 0; i < len; i++) {
+                if (i > becut)
+                    break;
+                real ai = i / real(len);
+                vec vv = lstp - slstpos[i];
+                if (i > 0) {
+                    if (state == 3)
+                        p = blend(slstpos[i], lstp, 0.75);
+                    else
+                        p = blend(slstpos[i], lstp, 0.5);
+                }
+                slstpos[i] = p;
+                lstp = p;
+                PSET(p, blendcor(0xFFFFFFFF, 1, ai), blend2(0.01, 0.1, ai/0.5, 2));
+                // behit
+                if (!attackpt0.empty()) {
+                    if ((attackpt0[rand() % attackpt0.size()] - p).sqrlenxy() < 0.05) {
+                        PSET(p, 0xFF0000FF, 0.05);
+                        becut = i;
+                        // if(rand() % 10 == 0)
+                        food::create(p, vv * 0.1);
+                        onfood(p);
+                    }
+                }
+            }
+        }
+    }
+
+    void setState(int s) { state = s; }
+
+    int getState() const { return state; }
+
+    void setPosition(const vec& p) { pos = p; }
+
+    const vec& getPosition() const { return pos; }
+
+    void setDirection(const vec& d) { dir = d; }
+
+    const vec& getDirection() const { return dir; }
+
+    void setAnimation1(real a) { animation1 = a; }
+
+    real getAnimation1() const { return animation1; }
+
+    void setTarget(const vec& t) { gtarget = t; }
+
+    const vec& getTarget() const { return gtarget; }
+
+    const std::vector<vec>& getAttackpt1() const { return attackpt1; }
+
+    int getTrigger() const { return trigger; }
+
+private:
+    vec pos;
+    vec dir;
+    vec gtarget;
+    vec headpos;
+    std::vector<vec> attackpt1;
+    float s_t[4];
+    int state = 1;
+    int trigger = 0;
+    int becut = 100;
+    real animation1 = 0;
+
+    void drawMouth(real gtime, real r, real mouth, const std::vector<vec>& attackpt0) {
+        vec vv = dir.rotcpy(PI / 4);
+        vec pp = pos + vv * r;
+        int len = 10;
+        for (int i = 0; i < len; i++) {
+            vv.rot(-PI / 40 + mouth);
+            pp += vv * USZ;
+            PSET(pp, 0xFFFFFFFF);
+        }
+        PSET(pp, 0xffff00ff, 0.025);
+        attackpt1.push_back(pp);
+
+        vv = dir.rotcpy(-PI / 4);
+        pp = pos + vv * r;
+        for (int i = 0; i < len; i++) {
+            vv.rot(PI / 40 - mouth);
+            pp += vv * USZ;
+            PSET(pp, 0xFFFFFFFF);
+        }
+        PSET(pp, 0xffff00ff, 0.025);
+        attackpt1.push_back(pp);
+    }
+};
 void bottledragon(vec& pos, vec& dir)
 {
     // 判断是否被切成小块
