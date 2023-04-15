@@ -1,3 +1,130 @@
+void bottledragon(vec& pos, vec& dir)
+{
+    // 判断是否被切成小块
+    if(becut <= 4)
+    {
+        trigger ++;
+        return;
+    }
+
+    // 定义常量和变量
+    const real USZ = 0.025;
+    static float s_t[] = { rrnd(0, 1), rrnd(0, 1), rrnd(0, 1), rrnd(0, 1) };
+    real T1 = 0.25, T2 = 0.1, T3 = 0.25;
+    real mouth = 0;
+    vec vv, pp;
+
+    // 根据状态进行动画绘制和位置计算
+    if (state == 1)  // 张嘴
+    {
+        if (gtime - animation1 < T1)
+            pos.y = blend(0.455, 0.525, (gtime - animation1) / T1);
+        else if (gtime - animation1 - T1 < T2)
+            pos.y = 0.525;
+        else if (gtime - animation1 - T1 - T2 < T3)
+            pos.y = blend(0.525, 0.455, (gtime - animation1 - T1 - T2) / T3);
+
+        // 计算嘴巴的张合程度
+        mouth = blend(0, PI / 50, (gtime - animation1) / T1);
+        if (gtime - animation1 - T1 < T2)
+            mouth = blend(PI / 50, -PI / 50, (gtime - animation1 - T1) / T2);
+    }
+    else if (state == 2)  // 追踪目标
+    {
+        dir.rot(PI * 0.005 * FT(gtime * PI, s_t));
+        pos += dir * 0.01;
+
+        // 计算嘴巴的张合程度
+        mouth = PI / 50 * sin(gtime * 10 * PI);
+    }
+    else if (state == 3)  // 攻击目标
+    {
+        vv = (gtarget - pos);
+        if (vv.len() < USZ * 4)
+            state = 2;
+        dir = blend(dir, vv.normcopy(), 0.1);
+        dir.rot(PI * 0.003 * FT(gtime * 4 * PI, s_t));
+        pos += dir * 0.001;
+
+        // 计算嘴巴的张合程度
+        mouth = blend(0, PI / 50, (gtime - animation1) / T1);
+        if (gtime - animation1 - T1 < T2)
+            mouth = blend(PI / 50, -PI / 50, (gtime - animation1 - T1) / T2);
+    }
+
+    // 绘制头部和嘴巴
+    const real r = 10 * USZ;
+    drawcircle(pos, r, 0xFFFFFFFF);
+    PSET(pos + dir.rotcpy(PI / 4) * (r / 2), 0xFFFFFFFF, 0.1);
+    PSET(pos + dir.rotcpy(-PI / 4) * (r / 2), 0xFFFFFFFF, 0.1);
+    headpos = pos;
+
+    // 绘制嘴巴的两侧
+    vv = dir.rotcpy(PI / 4);
+    pp = pos + vv * r;
+    for (int i = 0; i < 10; i++)
+    {
+        vv.rot(-PI / 40 + mouth);
+        pp += vv * USZ;
+        PSET(pp, 0xFFFFFFFF);
+    }
+    PSET(pp, 0xffff00ff, 0.025);
+    attackpt1.push_back(pp);
+
+    vv = dir.rotcpy(-PI / 4);
+    pp = pos + vv * r;
+    for (int i = 0; i < 10; i++)
+    {
+        vv.rot(PI / 40 - mouth);
+        pp += vv * USZ;
+        PSET(pp, 0xFFFFFFFF);
+    }
+    PSET(pp, 0xffff00ff, 0.025);
+    attackpt1.push_back(pp);
+
+    // 绘制身体
+    if (state == 2 || state == 3)
+    {
+        vec p = pos - dir * r;
+        vec v = -dir.normcopy();
+        const int len = 100;
+        static vec slstpos[len] = { vec(-100, 0) };
+        if (slstpos[0].x <= -100){
+            for (int i = 0; i < len; i++)
+                slstpos[i] = p;
+        }
+        static vec lstp = p;
+        real step = USZ;
+        for (int i = 0; i < len; i++)
+        {
+            if(i > becut)
+                break;
+            real ai = i / real(len);
+            vec vv = lstp - slstpos[i];
+            if (i > 0)
+            {
+                p = state == 3 ? blend(slstpos[i], lstp, 0.75) : blend(slstpos[i], lstp, 0.5);
+            }
+            slstpos[i] = p;
+            lstp = p;
+            PSET(p, blendcor(0xFFFFFFFF, 1, ai), blend2(0.01, 0.1, ai/0.5, 2));
+
+            // 检测是否被攻击到
+            if(!attackpt0.empty())
+            {
+                if((attackpt0[rand() % attackpt0.size()] - p).sqrlenxy() < 0.05)
+                {
+                    PSET(p, 0xFF0000FF, 0.05);
+                    becut = i;
+                    food::create(p, vv * 0.1);
+                    onfood(p);
+                }
+            }
+        }
+    }
+}
+
+
 void shape_alpha()
 {
     topo E;
