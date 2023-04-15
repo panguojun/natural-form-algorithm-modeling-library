@@ -1,3 +1,56 @@
+// 插值函数
+float lerp(float a, float b, float t) {
+    return (1 - t) * a + t * b;
+}
+
+// Cosine 插值函数
+float cosineInterpolate(float a, float b, float t) {
+    float ft = t * M_PI;
+    float f = (1 - cos(ft)) * 0.5;
+    return lerp(a, b, f);
+}
+
+// 生成随机梯度向量
+void generateGradient(std::vector<float>& gradient, int size) {
+    for (int i = 0; i < size; i++) {
+        float x = 2 * static_cast<float>(rand()) / RAND_MAX - 1;
+        float y = 2 * static_cast<float>(rand()) / RAND_MAX - 1;
+        gradient.push_back(x);
+        gradient.push_back(y);
+    }
+}
+
+// 计算两个向量的点积
+float dotProduct(float x1, float y1, float x2, float y2) {
+    return x1 * x2 + y1 * y2;
+}
+
+// 计算梯度向量的索引
+int gradientIndex(int x, int y, int width) {
+    return y * width + x;
+}
+
+// 计算 Perlin Noise 值
+float perlinNoise(float x, float y, float frequency, float amplitude, std::vector<float>& gradient, int width, int height) {
+    float x0 = floor(x / frequency) * frequency;
+    float x1 = x0 + frequency;
+    float y0 = floor(y / frequency) * frequency;
+    float y1 = y0 + frequency;
+    float sx = (x - x0) / frequency;
+    float sy = (y - y0) / frequency;
+    int ix0 = static_cast<int>(x0) % width;
+    int ix1 = static_cast<int>(x1) % width;
+    int iy0 = static_cast<int>(y0) % height;
+    int iy1 = static_cast<int>(y1) % height;
+    float n0 = dotProduct(gradient[gradientIndex(ix0, iy0, width) * 2], gradient[gradientIndex(ix0, iy0, width) * 2 + 1], x - x0, y - y0);
+    float n1 = dotProduct(gradient[gradientIndex(ix1, iy0, width) * 2], gradient[gradientIndex(ix1, iy0, width) * 2 + 1], x - x1, y - y0);
+    float ix0Lerp = cosineInterpolate(n0, n1, sx);
+    n0 = dotProduct(gradient[gradientIndex(ix0, iy1, width) * 2], gradient[gradientIndex(ix0, iy1, width) * 2 + 1], x - x0, y - y1);
+    n1 = dotProduct(gradient[gradientIndex(ix1, iy1, width) * 2], gradient[gradientIndex(ix1, iy1, width) * 2 + 1], x - x1, y - y1);
+    float ix1Lerp = cosineInterpolate(n0, n1, sx);
+    return amplitude * cosineInterpolate(ix0Lerp, ix1Lerp, sy);
+}
+
 float rndmap(int x, int y)
 {
     int n = x + y * 57;
