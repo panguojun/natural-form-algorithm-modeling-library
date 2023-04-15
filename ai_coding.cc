@@ -4,14 +4,14 @@ float lerp(float a, float b, float t) {
 }
 
 // Cosine 插值函数
-float cosineInterpolate(float a, float b, float t) {
+float cosine(float a, float b, float t) {
     float ft = t * M_PI;
     float f = (1 - cos(ft)) * 0.5;
     return lerp(a, b, f);
 }
 
 // 生成随机梯度向量
-void generateGradient(std::vector<float>& gradient, int size) {
+void gen_grad(std::vector<float>& gradient, int size) {
     for (int i = 0; i < size; i++) {
         float x = 2 * static_cast<float>(rand()) / RAND_MAX - 1;
         float y = 2 * static_cast<float>(rand()) / RAND_MAX - 1;
@@ -26,29 +26,28 @@ float dotProduct(float x1, float y1, float x2, float y2) {
 }
 
 // 计算梯度向量的索引
-int gradientIndex(int x, int y, int width) {
+int grad_index(int x, int y, int width) {
     return y * width + x;
 }
 
-// 计算 Perlin Noise 值
-float perlinNoise(float x, float y, float frequency, float amplitude, std::vector<float>& gradient, int width, int height) {
-    float x0 = floor(x / frequency) * frequency;
-    float x1 = x0 + frequency;
-    float y0 = floor(y / frequency) * frequency;
-    float y1 = y0 + frequency;
-    float sx = (x - x0) / frequency;
-    float sy = (y - y0) / frequency;
-    int ix0 = static_cast<int>(x0) % width;
-    int ix1 = static_cast<int>(x1) % width;
-    int iy0 = static_cast<int>(y0) % height;
-    int iy1 = static_cast<int>(y1) % height;
-    float n0 = dotProduct(gradient[gradientIndex(ix0, iy0, width) * 2], gradient[gradientIndex(ix0, iy0, width) * 2 + 1], x - x0, y - y0);
-    float n1 = dotProduct(gradient[gradientIndex(ix1, iy0, width) * 2], gradient[gradientIndex(ix1, iy0, width) * 2 + 1], x - x1, y - y0);
-    float ix0Lerp = cosineInterpolate(n0, n1, sx);
-    n0 = dotProduct(gradient[gradientIndex(ix0, iy1, width) * 2], gradient[gradientIndex(ix0, iy1, width) * 2 + 1], x - x0, y - y1);
-    n1 = dotProduct(gradient[gradientIndex(ix1, iy1, width) * 2], gradient[gradientIndex(ix1, iy1, width) * 2 + 1], x - x1, y - y1);
-    float ix1Lerp = cosineInterpolate(n0, n1, sx);
-    return amplitude * cosineInterpolate(ix0Lerp, ix1Lerp, sy);
+float perlin_noise(crvec2 p, float freq, float amp, std::vector<vec2>& grad, int w, int h) {
+    float x0 = floor(p.x / freq) * freq;
+    float x1 = x0 + freq;
+    float y0 = floor(p.y / freq) * freq;
+    float y1 = y0 + freq;
+    float sx = (p.x - x0) / freq;
+    float sy = (p.y - y0) / freq;
+    int ix0 = int(x0) % w;
+    int ix1 = int(x1) % w;
+    int iy0 = int(y0) % h;
+    int iy1 = int(y1) % h;
+    float n0 = dot(grad[grad_index(ix0, iy0, w)], vec2(p.x - x0, p.y - y0));
+    float n1 = dot(grad[grad_index(ix1, iy0, w)], vec2(p.x - x1, p.y - y0));
+    float ix0Lerp = cosine(n0, n1, sx);
+    n0 = dot(grad[grad_index(ix0, iy1, w)], vec2(p.x - x0, p.y - y1));
+    n1 = dot(grad[grad_index(ix1, iy1, w)], vec2(p.x - x1, p.y - y1));
+    float ix1Lerp = cosine(n0, n1, sx);
+    return amp * cosine(ix0Lerp, ix1Lerp, sy);
 }
 
 float rndmap(int x, int y)
